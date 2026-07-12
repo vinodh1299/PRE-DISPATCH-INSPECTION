@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>PDI</title>
+
+  <!-- ✅ QR Code Generator -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+  <style>
+    body { margin: 15px; font-family: Arial, sans-serif; }
+    .HEADER { width: 100%; }
+    .Header1 {
+      height: 35px; color: black; font-weight: 900; display: flex;
+      justify-content: space-between; border: solid #002060;
+    }
+    .hed1 { color: #1A9FD8; font-size: 19px; line-height: 35px; }
+    .Header2 {
+      height: 35px; font-weight: 900; display: flex;
+      justify-content: center; border: solid #002060; border-top: 0;
+    }
+    .emp-details {
+      height: 35px;
+      font-weight: 900;
+      display: flex;
+      border: solid #002060;
+      border-top: 0;
+      gap: 10%;
+      align-items: center;
+      padding: 0 15px;
+    }
+    .H2-title { color: #1A9FD8; font-size: 19px; line-height: 35px; }
+    .logo img { width: 120px; margin-top: 4px; }
+    .top { display: flex; align-items: center; gap: 25px; margin: 20px 0; }
+    .select select { padding: 5px; font-size: 14px; min-width: 200px; }
+    .scan-inputs { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+    .scan-inputs input { padding: 5px; box-sizing: border-box; }
+
+    dialog {
+      align-items: center;
+      padding: 25px;
+      width: 400px;
+      max-width: 90%;
+      border: none;
+      border-radius: 12px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+      background: #fff;
+      text-align: center;
+    }
+
+    #decisionDialog p {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 20px;
+      color: #333;
+    }
+
+    #decisionDialog button {
+      padding: 10px 20px;
+      margin: 0 10px;
+      font-size: 15px;
+      font-weight: 600;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: 0.2s ease;
+    }
+
+    #okBtn {
+      background-color: #4CAF50;
+      color: #fff;
+    }
+    #okBtn:hover { background-color: #43a047; }
+
+    #notOkBtn {
+      background-color: #e53935;
+      color: #fff;
+    }
+    #notOkBtn:hover { background-color: #d32f2f; }
+
+    #reasonDialog p {
+      font-size: 17px;
+      font-weight: 600;
+      margin-bottom: 15px;
+      color: #333;
+    }
+
+    #reasonDialog textarea {
+      width: 100%;
+      max-width: 350px;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      resize: none;
+      font-size: 14px;
+      outline: none;
+    }
+
+    #reasonDialog button {
+      margin-top: 15px;
+      padding: 10px 20px;
+      font-size: 15px;
+      font-weight: 600;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      background-color: #1A9FD8;
+      color: #fff;
+    }
+
+    .shift{ display: flex; gap: 10px; margin-top: 18px; }
+
+    .loader-overlay {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.4);
+      display: none;
+      justify-content: center; align-items: center;
+      z-index: 9999;
+    }
+
+    .loader {
+      border: 6px solid #f3f3f3;
+      border-top: 6px solid #1A9FD8;
+      border-radius: 50%;
+      width: 50px; height: 50px;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    #addBtn {
+      background-color: transparent;
+      color: #1A9FD8;
+      border: 2px solid #1A9FD8;
+      padding: 10px 24px;
+      font-size: 15px;
+      font-weight: 700;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      outline: none;
+    }
+
+    #addBtn:hover {
+      background-color: #1A9FD8;
+      color: #fff;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(26, 159, 216, 0.3);
+    }
+
+    #addBtn:active {
+      transform: translateY(0);
+    }
+
+    #saveBtn {
+      background: linear-gradient(135deg, #1A9FD8 0%, #002060 100%);
+      color: #fff;
+      border: none;
+      padding: 12px 32px;
+      font-size: 15px;
+      font-weight: 700;
+      border-radius: 8px;
+      cursor: pointer;
+      box-shadow: 0 4px 15px rgba(0, 32, 96, 0.25);
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      outline: none;
+    }
+
+    #saveBtn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(0, 32, 96, 0.4);
+      filter: brightness(1.1);
+    }
+
+    #saveBtn:active {
+      transform: translateY(0);
+    }
+
+  </style>
+</head>
+<body>
+
+<!-- ✅ Hidden QR Generator Div -->
+<div id="qrTemp" style="display:none;"></div>
+
+<div class="HEADER">
+    <div class="Header1">
+      <div class="logo">
+        <img src="Assets/YUKEN LOGO.png" alt="Yuken Logo">
+      </div>
+      <div class="hed1">YUKEN INDIA LIMITED</div>
+      <div style="padding-right: 15px;">
+        <button style="background: #c4c4c5;" onclick="logout()">LOGOUT</button>
+      </div>
+    </div>
+
+    <div class="Header2">
+      <div class="H2-title">PRE DISPATCH INSPECTION(PDI)</div>
+    </div>
+
+    <div class="emp-details"></div>
+</div>
+
+<input type="hidden" id="empName">
+<input type="hidden" id="empNo">
+
+<div class="top">
+  <div class="shift">
+    <label style="font-weight: bold;">Shift:</label>
+    <label><input type="radio" name="shift" value="General"> General</label>
+    <label><input type="radio" name="shift" value="First"> First</label>
+    <label><input type="radio" name="shift" value="Second"> Second</label>
+    <label><input type="radio" name="shift" value="Night"> Night</label>
+  </div>
+</div>
+
+<div class="scan-inputs"></div>
+
+<div style="margin-top: 25px; display: flex; align-items: center; gap: 15px; margin-left: 10px;">
+  <button id="addBtn">ADD</button>
+  <button id="saveBtn">SAVE</button>
+</div>
+
+<!-- ✅ Dialogs -->
+<dialog id="printDialog">
+  <p>Print label for serial number?</p>
+  <div id="qrDisplay" style="margin: 15px auto; display: flex; justify-content: center;"></div>
+  <button id="printLabelBtn" style="background-color: #1A9FD8; color: #fff; padding: 10px 20px; font-size: 15px; font-weight: 600; border: none; border-radius: 8px; cursor: pointer;">PRINT LABEL</button>
+</dialog>
+
+<script>
+
+// ✅ LOADER
+function showLoader() { document.getElementById('loader').style.display = 'flex'; }
+function hideLoader() { document.getElementById('loader').style.display = 'none'; }
+
+// ✅ EMP DETAILS
+const params = new URLSearchParams(window.location.search);
+const empName = params.get('emp_name');
+const empNo = params.get('emp_no');
+
+if (!empName || !empNo) {
+  sessionStorage.clear();
+  localStorage.clear();
+  window.location.href = 'login.jsp';
+} else {
+  document.getElementById('empName').value = empName;
+  document.getElementById('empNo').value = empNo;
+  document.querySelector('.emp-details').innerHTML =
+    `<div>EMP NAME: ${empName}</div><div>EMP NO: ${empNo}</div>`;
+}
+
+// ✅ VARIABLES
+const scaninputsDiv = document.querySelector('.scan-inputs');
+const printDialog = document.getElementById('printDialog');
+const printLabelBtn = document.getElementById('printLabelBtn');
+
+let currentInput = null;
+let okList = [];
+let notOkList = [];
+let notScannedList = [];
+let scannedValues = new Set();
+let inputCount = 0;
+
+// ✅ Extract characters 6–10 and add prefix 10000 (removing any hyphens)
+function getQRCodeData(scannedData) {
+    const cleanData = scannedData.replace(/-/g, "");
+    const extracted = cleanData.substring(5, 10);
+    return "10000" + extracted;
+}
+
+// ✅ Print label silently via local print helper
+async function printLabel(scannedData, createdAt) {
+  const qrData = getQRCodeData(scannedData);
+
+  // Send print job to the servlet queue
+  const response = await fetch("print-label", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      qrData: qrData,
+      qrImage: "", 
+      text: "PDI CHECK OK",
+      created_at: createdAt || ""
+    })
+  });
+
+  if (!response.ok) {
+    const errText = await response.text();
+    throw new Error(errText || "Failed to generate print payload from server");
+  }
+}
+
+// ✅ CREATE INPUT FIELDS
+function generateInputs(count) {
+  for (let i = 1; i <= count; i++) {
+    const input = document.createElement('input');
+    input.type = 'text';
+
+    input.addEventListener('blur', () => {
+
+      const value = input.value.trim();
+      if (!value) return;
+
+      if (scannedValues.has(value)) {
+        input.style.backgroundColor = 'khaki';
+        alert("⚠️ Duplicate entry detected!");
+        return;
+      }
+
+      currentInput = input;
+      scannedValues.add(value);
+
+      const qrData = getQRCodeData(value);
+      document.getElementById("qrDisplay").innerHTML = "";
+      new QRCode(document.getElementById("qrDisplay"), {
+        text: qrData,
+        width: 150,
+        height: 150,
+        correctLevel: QRCode.CorrectLevel.H
+      });
+
+      printDialog.showModal();
+    });
+
+    scaninputsDiv.appendChild(input);
+  }
+}
+
+generateInputs(100);
+
+document.getElementById('addBtn').onclick = () => generateInputs(50);
+
+// ✅ PRINT LABEL BUTTON
+printLabelBtn.onclick = async () => {
+  if (currentInput) {
+    showLoader();
+    try {
+      await printLabel(currentInput.value);
+      currentInput.style.backgroundColor = 'lightgreen';
+      okList.push({
+        scanned_data: currentInput.value,
+        label_status: 'Label Print Done'
+      });
+    } catch (err) {
+      console.error(err);
+      alert("Print label error: " + err);
+    } finally {
+      hideLoader();
+    }
+  }
+  printDialog.close();
+};
+
+// ✅ SAVE BUTTON
+saveBtn.onclick = () => {
+  const selectedShift = document.querySelector('input[name="shift"]:checked')?.value;
+  if (!selectedShift) {
+    alert("⚠️ Please select a shift before saving!");
+    return;
+  }
+
+  fetch('save-results', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({
+      emp_name: empName,
+      emp_no: empNo,
+      shift: selectedShift,
+      scanned_items: okList,
+      ok: [],
+      not_ok: [],
+      not_scanned: []
+    })
+  }).then(() => {
+    alert("Saved!");
+    location.reload();
+  });
+};
+
+// ✅ LOGOUT
+function logout() {
+  localStorage.clear();
+  sessionStorage.clear();
+  location.href = 'login.jsp';
+}
+
+</script>
+
+<div class="loader-overlay" id="loader">
+  <div class="loader"></div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,15 @@
+# Ignore compiled Java classes
+TESTING-STATION/build/
+TESTING-STATION/target/
+TESTING-STATION/src/main/webapp/WEB-INF/classes/
+
+# Ignore compiled C# binary
+PdiApp.exe
+PdiApp_test.exe
+
+# Ignore large war files
+*.war
+
+# Ignore local system files
+.DS_Store
+Thumbs.db
