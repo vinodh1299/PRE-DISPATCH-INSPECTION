@@ -187,6 +187,10 @@
 
     /* Print styling */
     @media print {
+      @page {
+        margin: 0;
+        size: 81.1mm 39.4mm landscape; /* Force standard landscape label size */
+      }
       body * {
         display: none !important;
       }
@@ -202,64 +206,62 @@
         margin: 0;
         padding: 0;
         box-sizing: border-box;
+        overflow: hidden;
       }
       .print-label-card {
         width: 81.1mm;
         height: 39.4mm;
-        padding: 4mm;
         box-sizing: border-box;
         font-family: Arial, sans-serif;
         position: relative;
         background: white;
-      }
-      .print-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        height: 8mm;
-        margin-bottom: 2mm;
+        overflow: hidden;
       }
       .print-logo {
-        height: 6mm;
+        position: absolute;
+        left: 5mm;
+        top: 4mm;
+        height: 7mm;
         width: auto;
       }
       .print-serial {
+        position: absolute;
+        right: 5mm;
+        top: 4mm;
         font-family: monospace;
         font-size: 14px;
         font-weight: bold;
       }
       .print-datetime {
-        font-size: 10px;
-        text-align: right;
-        margin-top: 1mm;
-        margin-bottom: 2mm;
-      }
-      .print-body {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-end;
-        height: 18mm;
-      }
-      .print-left {
-        display: flex;
-        flex-direction: column;
-        gap: 1mm;
+        position: absolute;
+        right: 5mm;
+        top: 11mm;
+        font-size: 8px;
+        color: black;
       }
       .print-status {
+        position: absolute;
+        left: 5mm;
+        top: 17mm;
         font-size: 14px;
         font-weight: bold;
       }
       .print-checkmark {
-        font-size: 24px;
+        position: absolute;
+        left: 12mm;
+        top: 24mm;
+        font-size: 26px;
         font-weight: bold;
         line-height: 1;
-        margin-left: 5mm;
       }
       .print-qr {
+        position: absolute;
+        right: 5mm;
+        top: 16mm;
         width: 18mm;
         height: 18mm;
       }
-      .print-qr img {
+      .print-qr img, .print-qr canvas {
         width: 100% !important;
         height: 100% !important;
       }
@@ -275,18 +277,12 @@
 <!-- ✅ Printable Label Container -->
 <div id="printArea">
   <div class="print-label-card">
-    <div class="print-header">
-      <img src="Assets/YUKEN LOGO.png" class="print-logo" />
-      <span id="printSerialText" class="print-serial"></span>
-    </div>
+    <img src="Assets/YUKEN LOGO.png" class="print-logo" />
+    <span id="printSerialText" class="print-serial"></span>
     <div id="printDateTime" class="print-datetime"></div>
-    <div class="print-body">
-      <div class="print-left">
-        <div class="print-status">PDI CHECK OK</div>
-        <div class="print-checkmark">✔</div>
-      </div>
-      <div id="printQrDisplay" class="print-qr"></div>
-    </div>
+    <div class="print-status">PDI CHECK OK</div>
+    <div class="print-checkmark">✔</div>
+    <div id="printQrDisplay" class="print-qr"></div>
   </div>
 </div>
 
@@ -392,8 +388,8 @@ function printLabel(scannedData) {
   document.getElementById("printQrDisplay").innerHTML = "";
   new QRCode(document.getElementById("printQrDisplay"), {
     text: qrData,
-    width: 80,
-    height: 80,
+    width: 68,
+    height: 68,
     correctLevel: QRCode.CorrectLevel.H
   });
 
