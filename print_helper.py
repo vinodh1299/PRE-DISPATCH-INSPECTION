@@ -2,6 +2,7 @@ import time
 import urllib.request
 import base64
 import sys
+import ssl
 
 # Try to import win32print. If not installed, guide the user on how to install it.
 try:
@@ -11,10 +12,13 @@ except ImportError:
     print("Please install it by running: pip install pywin32")
     sys.exit(1)
 
-# VPS Endpoint URL to poll for print jobs (can be overridden via command line argument)
-POLL_URL = "http://103.159.84.39:8080/PDI-TEST/print-label"
+# VPS Endpoint URL to poll for print jobs (HTTPS is strictly required on port 8080)
+POLL_URL = "https://103.159.84.39:8080/PDI-TEST/print-label"
 if len(sys.argv) > 1:
     POLL_URL = sys.argv[1]
+
+# Create unverified SSL context to bypass self-signed certificate validation errors
+ssl_context = ssl._create_unverified_context()
 
 def run_pull_agent():
     print("=======================================================")
@@ -31,12 +35,12 @@ def run_pull_agent():
 
     while True:
         try:
-            # Fetch a print job from the servlet queue (outbound GET request)
+            # Fetch a print job from the servlet queue (outbound GET request over HTTPS)
             req = urllib.request.Request(
                 POLL_URL, 
                 headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
             )
-            with urllib.request.urlopen(req, timeout=5) as response:
+            with urllib.request.urlopen(req, context=ssl_context, timeout=5) as response:
                 data = response.read().decode('utf-8').strip()
                 
                 # If we received a valid Base64 payload (not empty and not the 'NO_JOBS' token)
