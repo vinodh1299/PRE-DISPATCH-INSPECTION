@@ -180,24 +180,25 @@
       transform: translateY(0);
     }
 
-    /* Screen styling: hide print area */
-    #printArea {
+    #print-area {
       display: none;
     }
 
-    /* Print styling */
     @media print {
-      @page {
-        margin: 0;
-        size: 81.1mm 39.4mm landscape; /* Force standard landscape label size */
+      html, body {
+        margin: 0 !important;
+        padding: 0 !important;
+        background: #fff !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
       }
-      body * {
+      
+      body > *:not(#print-area) {
         display: none !important;
       }
-      #printArea, #printArea * {
+      
+      #print-area {
         display: block !important;
-      }
-      #printArea {
         position: absolute;
         left: 0;
         top: 0;
@@ -207,63 +208,12 @@
         padding: 0;
         box-sizing: border-box;
         overflow: hidden;
+        background: #ffffff;
       }
-      .print-label-card {
-        width: 81.1mm;
-        height: 39.4mm;
-        box-sizing: border-box;
-        font-family: Arial, sans-serif;
-        position: relative;
-        background: white;
-        overflow: hidden;
-      }
-      .print-logo {
-        position: absolute;
-        left: 5mm;
-        top: 4mm;
-        height: 7mm;
-        width: auto;
-      }
-      .print-serial {
-        position: absolute;
-        right: 5mm;
-        top: 4mm;
-        font-family: monospace;
-        font-size: 14px;
-        font-weight: bold;
-      }
-      .print-datetime {
-        position: absolute;
-        right: 5mm;
-        top: 11mm;
-        font-size: 8px;
-        color: black;
-      }
-      .print-status {
-        position: absolute;
-        left: 5mm;
-        top: 17mm;
-        font-size: 14px;
-        font-weight: bold;
-      }
-      .print-checkmark {
-        position: absolute;
-        left: 12mm;
-        top: 24mm;
-        font-size: 26px;
-        font-weight: bold;
-        line-height: 1;
-      }
-      .print-qr {
-        position: absolute;
-        right: 5mm;
-        top: 16mm;
-        width: 18mm;
-        height: 18mm;
-      }
-      .print-qr img, .print-qr canvas {
-        width: 100% !important;
-        height: 100% !important;
+      
+      @page {
+        size: 81.1mm 39.4mm;
+        margin: 0;
       }
     }
 
@@ -271,20 +221,33 @@
 </head>
 <body>
 
+<!-- ✅ Client-side print layout (only visible during print) -->
+<div id="print-area">
+  <!-- Yuken Logo -->
+  <img id="print-logo" src="Assets/YUKEN LOGO.png" style="position: absolute; left: 5mm; top: 4mm; width: 25mm; height: auto;">
+  
+  <!-- Serial / QR Data Text -->
+  <div id="print-qr-data" style="position: absolute; right: 5mm; top: 5mm; font-family: monospace; font-size: 13pt; font-weight: bold; text-align: right; line-height: 1;"></div>
+  
+  <!-- Date Time Text -->
+  <div id="print-date-time" style="position: absolute; right: 5mm; top: 11mm; font-family: sans-serif; font-size: 9pt; text-align: right; color: #333; line-height: 1;"></div>
+  
+  <!-- "PDI CHECK OK" Text -->
+  <div id="print-text" style="position: absolute; left: 5mm; top: 16mm; font-family: sans-serif; font-size: 18pt; font-weight: 900; color: #000; line-height: 1.1;">PDI CHECK OK</div>
+  
+  <!-- Check Icon SVG -->
+  <div id="print-check-icon" style="position: absolute; left: 8mm; top: 25mm; width: 10mm; height: 10mm;">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" style="width:100%; height:100%; color:black;">
+      <polyline points="20 6 9 17 4 12"></polyline>
+    </svg>
+  </div>
+  
+  <!-- QR Code Container -->
+  <div id="print-qrcode" style="position: absolute; right: 5mm; top: 17mm; width: 18mm; height: 18mm;"></div>
+</div>
+
 <!-- ✅ Hidden QR Generator Div -->
 <div id="qrTemp" style="display:none;"></div>
-
-<!-- ✅ Printable Label Container -->
-<div id="printArea">
-  <div class="print-label-card">
-    <img src="Assets/YUKEN LOGO.png" class="print-logo" />
-    <span id="printSerialText" class="print-serial"></span>
-    <div id="printDateTime" class="print-datetime"></div>
-    <div class="print-status">PDI CHECK OK</div>
-    <div class="print-checkmark">✔</div>
-    <div id="printQrDisplay" class="print-qr"></div>
-  </div>
-</div>
 
 <div class="HEADER">
     <div class="Header1">
@@ -372,28 +335,30 @@ function getQRCodeData(scannedData) {
     return "10000" + extracted;
 }
 
-// ✅ Print label using browser print preview
-function printLabel(scannedData) {
+// ✅ Print label client-side using window.print()
+async function printLabel(scannedData, createdAt) {
+
   const qrData = getQRCodeData(scannedData);
-  document.getElementById("printSerialText").innerText = qrData;
 
-  // Format current Date Time (e.g. 12/07/2026 11:12:06)
-  const now = new Date();
+  document.getElementById("print-qr-data").textContent = qrData;
+
+  const sdf = new Date();
   const pad = (n) => String(n).padStart(2, '0');
-  const dateTimeStr = pad(now.getDate()) + '/' + pad(now.getMonth() + 1) + '/' + now.getFullYear() + ' ' + 
-                      pad(now.getHours()) + ':' + pad(now.getMinutes()) + ':' + pad(now.getSeconds());
-  document.getElementById("printDateTime").innerText = dateTimeStr;
+  const dateTimeStr = `${pad(sdf.getDate())}/${pad(sdf.getMonth() + 1)}/${sdf.getFullYear()} ${pad(sdf.getHours())}:${pad(sdf.getMinutes())}:${pad(sdf.getSeconds())}`;
+  document.getElementById("print-date-time").textContent = dateTimeStr;
 
-  // Generate print QR Code
-  document.getElementById("printQrDisplay").innerHTML = "";
-  new QRCode(document.getElementById("printQrDisplay"), {
+  const qrCodeEl = document.getElementById("print-qrcode");
+  qrCodeEl.innerHTML = "";
+  new QRCode(qrCodeEl, {
     text: qrData,
-    width: 68,
-    height: 68,
+    width: 120,
+    height: 120,
     correctLevel: QRCode.CorrectLevel.H
   });
 
-  // Open Chrome's Print Preview Dialog
+  // Brief delay to allow QR code rendering in the DOM
+  await new Promise(r => setTimeout(r, 200));
+
   window.print();
 }
 
@@ -438,10 +403,11 @@ generateInputs(100);
 document.getElementById('addBtn').onclick = () => generateInputs(50);
 
 // ✅ PRINT LABEL BUTTON
-printLabelBtn.onclick = () => {
+printLabelBtn.onclick = async () => {
   if (currentInput) {
+    showLoader();
     try {
-      printLabel(currentInput.value);
+      await printLabel(currentInput.value);
       currentInput.style.backgroundColor = 'lightgreen';
       okList.push({
         scanned_data: currentInput.value,
@@ -450,6 +416,8 @@ printLabelBtn.onclick = () => {
     } catch (err) {
       console.error(err);
       alert("Print label error: " + err);
+    } finally {
+      hideLoader();
     }
   }
   printDialog.close();
